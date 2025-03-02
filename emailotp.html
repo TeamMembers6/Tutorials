@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .otp-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        /* Add your existing CSS styles here */
+    </style>
+</head>
+<body>
+
+<div class="otp-container">
+    <h2>OTP Verification</h2>
+    <p>Enter the OTP sent to your email:</p>
+    <input type="text" id="otpInput" placeholder="Enter OTP" required>
+    <button id="verifyBtn">Verify OTP</button>
+</div>
+
+<script>
+    // Get the email from the URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    const username = urlParams.get('name');
+    const pass = urlParams.get('pass');
+    console.log(email,pass);
+    
+    document.getElementById('verifyBtn').addEventListener('click', function() {
+        const enteredOtp = document.getElementById('otpInput').value;
+
+        if (!enteredOtp) {
+            alert('Please enter the OTP.');
+            return;
+        }
+
+        // Send the entered OTP to the server for verification
+        fetch('http://localhost:5000/verify-otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email, otp: enteredOtp }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                storageData(email,username,pass)
+                alert('OTP Verified Successfully!');
+                
+                window.location.href = 'login.html';
+            } else {
+                alert('Invalid OTP. Please try again.');
+            }
+           
+        })
+        .catch(error => {
+            
+            alert('Enter a valid Otp OR An error occurred during OTP verification.');
+        });
+    });
+    async function storageData(e,n, p) {
+    console.log(n, p);
+    
+    try {
+        let res = await fetch('http://localhost:5000/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: e, name: n, password: p }),
+        });
+
+        if (!res.ok) {
+            let err = await res.json()
+            alert(err.message)
+            throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+
+        let data = await res.json();
+        
+
+        if (data.success) {
+            alert("Successfully registered");
+        } else {
+            alert("Registration failed: " + data.message); // Assuming there's a message in the response
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert("An error occurred: " + error.message);
+    }
+}
+
+</script>
+
+</body>
+</html>
