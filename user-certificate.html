@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate of Achievement</title>
+    <style>
+        body {
+            margin: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #e9ecef;
+            font-family: 'Arial', sans-serif;
+            /* height: 100vh; Ensure full height for the background */
+        }
+
+        .certificate-container {
+    width: 90%;
+    max-width: 800px; /* Flexible max width for laptops */
+    height: 580px;
+    padding: 40px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 249, 250, 0.8) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+
+    /* Background Image Applied Here */
+    background-image: url('http://localhost:5000/Images/backdesign.png'); /* Path to the image */
+    background-size: cover; /* Ensures the image covers the entire container */
+    background-repeat: no-repeat; /* Prevents image repetition */
+    background-position: center; /* Centers the background image */
+}
+
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #007BFF;
+            margin: 10px 0;
+            font-family: 'Georgia', serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .recipient-name {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            text-transform: uppercase;
+        }
+
+        .course-name {
+            font-size: 1.5em;
+            color: #333;
+            margin: 10px 0;
+            font-style: italic;
+            border-bottom: 2px solid #007BFF;
+            display: inline-block;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .date {
+            font-size: 1.2em;
+            color: #777;
+            margin: 20px 0;
+        }
+
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .signature {
+            text-align: center;
+        }
+
+        .signature img {
+            width: 100px; /* Adjust as necessary */
+            margin-bottom: 10px; 
+        }
+
+        .signature-line {
+            width: 150px; 
+            height: 2px; 
+            background-color:#333; 
+            margin-top:-5px; /* Adjust spacing */
+            margin-bottom:-5px; /* Adjust spacing */
+        }
+        
+        .footer {
+            font-size:.9em; 
+            color:#0b0b0b; 
+            margin-top:.5em; /* Adjust spacing */
+        }
+        
+        /* Responsive Styles */
+        @media (max-width:600px) {
+            h1 { font-size :2em;}
+            .recipient-name {font-size :1.5em;}
+            .course-name {font-size :1.3em;}
+            .date,.footer {font-size :1em;}
+            .signature img {width :80px;}
+        }
+        
+        @media (min-width :601px) and (max-width :1024px) {
+            h1 {font-size :2.2em;}
+            .recipient-name {font-size :1.8em;}
+            .course-name {font-size :1.4em;}
+            .date,.footer {font-size :1.1em;}
+        }
+        
+        /* Download Button */
+        .download-button {
+            margin-top: 20px; 
+            padding: 10px 20px; 
+            font-size: 1em; 
+            background-color: #007BFF; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: background-color .3s;
+        }
+        
+        .download-button:hover {
+            background-color: #0056b3;
+        }       
+    </style>
+</head>
+
+<body>
+    <div class="certificate-container" id="certificate">
+        <div class="content">
+            <h1>Certificate of Achievement</h1>
+            <p>This is to certify that</p>
+            <div class="recipient-name" id="recipient-name"></div>
+            <p>has successfully completed the course</p>
+            <div class="course-name" id="course-name"></div>
+            <div class="date" id="date">Awarded on December </div>
+            <div class="signature-section">
+                <div class="signature">
+                    <img src="https://via.placeholder.com/150x60?text=Signature" alt="Signature">
+                    <div class="signature-line"></div>
+                    <p>Course Instructor</p>
+                </div>
+                <div class="signature">
+                      <img src="http://localhost:5000/Images/Logo1.png" alt="Company Logo" crossorigin="anonymous">
+                </div>
+            </div>
+            <div class="footer">This certificate is awarded by [Institution Name]</div>
+        </div>
+    </div>
+
+    <button class="download-button" onclick="downloadCertificate()">Download Certificate</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+
+    <script>
+       
+       document.addEventListener('DOMContentLoaded',async function ()  {
+        const params = new URLSearchParams(window.location.search);
+    
+    // Get the course name and token from the input fields
+    const courseName = params.get('courseName');
+   
+    // Prepare the request body
+    const requestBody = {
+        courseName: courseName,
+        token: localStorage.token // JWT token
+    };
+
+    try {
+        const response = await fetch('http://localhost:5000/api/certificate/details', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        
+        displayResult(data);
+    } catch (error) {
+        console.error('Error fetching certificate details:', error.message);
+        document.getElementById('result').innerText = `Error: ${error.message}`;
+    }
+});
+
+// Function to display result
+function displayResult(data) {
+    let name=document.querySelector('.recipient-name')
+    let courseName=document.querySelector('.course-name')
+    let day=document.querySelector('.date')
+    if (data.courseName && data.date) {
+        name.textContent=data.userName;
+        courseName.textContent=data.courseName;
+        day.textContent=`Awarded on ${data.date}`;
+    } else {
+        document.querySelector('.content').innerHTML = `<p>No certificate found.</p>`;
+    }
+}
+
+        function downloadCertificate() {
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+                const confirmSwitch = confirm("You are currently in mobile mode. Would you like to switch to desktop mode to download the certificate?");
+                if (confirmSwitch) {
+                    alert("Please switch to desktop mode in your browser settings to download the certificate.");
+                    return; // Exit function
+                } else {
+                    return; // Exit function
+                }
+            }
+
+            const certificate = document.getElementById('certificate');
+            html2canvas(certificate, { useCORS: true }).then(function(canvas) {
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const newImgWidth = 835;
+    const newImgHeight = 590;
+
+    const pdf = new jsPDF("landscape", "pt", "a4");
+    pdf.addImage(imgData, 'PNG', 0, 0, newImgWidth, newImgHeight);
+    pdf.save('certificate.pdf');
+});
+   }
+    </script>
+
+</body>
+
+</html>
